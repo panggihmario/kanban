@@ -4,7 +4,59 @@
       <modal/>
     <v-container fluid>
       <v-layout row>
-        <v-flex xs4  >
+        
+         <v-flex xs3  >
+          <div id="app">
+              <v-app id="inspire">
+                <div
+                  id="e3"
+                  style="max-width: 400px; "
+                  class="grey lighten-3"
+                >
+                  <v-toolbar
+                    color="black"
+                    dark
+                  >
+                    <v-toolbar-side-icon> </v-toolbar-side-icon>
+                    <v-toolbar-title>Back Log</v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <i class="fas fa-grin-beam-sweat fa-2x"></i>
+                  </v-toolbar>
+              
+                  <v-card  v-for="(task,index) in rawBacklog" :key=index >
+                    <v-container
+                      fluid
+                      grid-list-lg
+                    >
+                        <v-flex xs12>
+                          <v-card color="blue-grey darken-2" class="white--text text-md-center" >
+                            <v-card-title primary-title class="text-md-center" >
+                             
+                                    {{task.task}}
+                              
+                            </v-card-title>
+                            <v-card-actions>
+                                  <v-layout row>
+                                    <v-flex xs6>
+                                 <v-btn small color="red" dark v-on:click="deleteTask(index)">Delete</v-btn>
+                                    </v-flex>
+                                  <v-flex xs6>
+                                 <v-btn small color="primary" dark v-on:click="updateToDo(index)">Update</v-btn>
+                                    </v-flex>
+                                  </v-layout>
+                            </v-card-actions>
+                                  
+                          </v-card>
+                        </v-flex>
+                    </v-container>
+                  </v-card>
+                </div>
+              </v-app>
+</div>
+        </v-flex>
+
+
+        <v-flex xs3  >
           <div id="app">
               <v-app id="inspire">
                 <div
@@ -37,7 +89,7 @@
                             <v-card-actions>
                                   <v-layout row>
                                     <v-flex xs6>
-                                 <v-btn small color="red" dark v-on:click="deleteTask(index)">Delete</v-btn>
+                                 <v-btn small color="red" dark v-on:click="backToBacklog(index)">Back</v-btn>
                                     </v-flex>
                                   <v-flex xs6>
                                  <v-btn small color="primary" dark v-on:click="updateToProgress(index)">Update</v-btn>
@@ -53,7 +105,7 @@
               </v-app>
 </div>
         </v-flex>
-        <v-flex xs4>
+        <v-flex xs3>
                   <div id="app">
                   <v-app id="inspire">
                 <div
@@ -99,7 +151,7 @@
               </v-app>
 </div>
         </v-flex>
-        <v-flex xs4>
+        <v-flex xs3>
        
                   <div id="app">
               <v-app id="inspire">
@@ -170,6 +222,7 @@ export default{
       data : '' ,
       arrTask : [],
       arrProgress : [],
+      rawBacklog : {},
       rawTask : {},
       rawProgress : {},
       rawComplete : {}
@@ -189,6 +242,14 @@ export default{
         clear(){
           this.arrTask = []
           this.arrProgress = []
+        },
+        showDataBackLog(){
+          let self = this
+          database.ref('backlog/').on('value',(snapshot)=>{
+          var data = snapshot.val()
+          self.rawBacklog =snapshot.val()
+        })
+          
         },
        showDataTask(){
          let self = this
@@ -211,11 +272,26 @@ export default{
           self.rawComplete = snapshot.val()
         })
       },
+      updateToDo(index){
+           database.ref('backlog/').child(index).once('value')
+          .then(snapshot  =>{
+              let tes =snapshot.val()
+              // console.log(tes.task)
+              database.ref(`/tasks/${index}`).set(tes,function(err){
+                if(err){
+                  console.log('error')
+                }else{
+                  console.log('success')
+                }
+              })
+              database.ref(`backlog/${index}`).remove()
+          }) 
+      },
       updateToProgress(index){
           database.ref('tasks').child(index).once('value')
           .then(snapshot  =>{
               let tes =snapshot.val()
-              console.log(tes.task)
+              // console.log(tes.task)
               database.ref(`/progress/${index}`).set(tes,function(err){
                 if(err){
                   console.log('error')
@@ -239,6 +315,20 @@ export default{
             }
           })
           database.ref(`progress/${index}`).remove()
+        })
+      },
+      backToBacklog(index){
+          database.ref(`tasks/${index}`).once('value')
+        .then(snapshot=>{
+          let objProg = snapshot.val()
+          database.ref(`backlog/${index}`).set(objProg,function(err){
+            if(err){
+              console.log('error')
+            }else{
+              console.log('success')
+            }
+          })
+          database.ref(`tasks/${index}`).remove()
         })
       },
       backToProgress(index){
@@ -274,7 +364,7 @@ export default{
       },
       deleteTask(index){
         // console.log(index)
-        database.ref(`tasks/${index}`).remove()
+        database.ref(`backlog/${index}`).remove()
       },
       completeTask(index){
         // console.log(index)
@@ -287,6 +377,7 @@ export default{
     this.showDataTask()
     this.showDataProgress()
     this.showDataComplete()
+    this.showDataBackLog()
   }
 
 }

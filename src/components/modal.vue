@@ -6,7 +6,7 @@
         <v-btn round slot="activator" color="primary" >Add Task</v-btn>
         <v-card>
           <v-card-title>
-            <span class="headline">User Profile</span>
+            <span class="headline">Task</span>
           </v-card-title>
           <v-card-text>
             <v-container grid-list-md>
@@ -14,7 +14,7 @@
                 <v-flex xs12 sm6 md4>
                 </v-flex>
                 <v-flex xs12>
-                  <v-text-field v-model="task" label="Task" required></v-text-field>
+                  <v-text-field v-model="backlog" label="Task" required></v-text-field>
                 </v-flex>
               </v-layout>
             </v-container>
@@ -41,16 +41,18 @@ export default {
   data () {
     return {
       dialog: false,
-      task : '',
-      arrTask : [],
-      status : "todo"
+      
+      backlog : '',
+      
+      status : "backlog",
+      arrBlog : []
     }
   },
   methods : {
     add(){
       console.log("add")
-      database.ref('tasks/').push({
-        task : this.task,
+      database.ref('backlog/').push({
+        task : this.backlog,
         status : this.status
       },function(err){
         if(err){
